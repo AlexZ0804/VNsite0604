@@ -29,7 +29,7 @@
                 <span id="participant-count">0</span> <span class="text-xl text-slate-400 font-normal">người</span>
             </div>
         </div>
-        <button onclick="app.startQuiz()" class="brand-bg hover:bg-blue-600 text-white font-bold py-4 px-12 rounded-full transition-all text-lg shadow-lg shadow-blue-500/30">Bắt đầu thử thách</button>
+        <button id="start-btn" class="brand-bg hover:bg-blue-600 text-white font-bold py-4 px-12 rounded-full transition-all text-lg shadow-lg shadow-blue-500/30">Bắt đầu thử thách</button>
     </div>
 
     <!-- 答题页 -->
@@ -49,7 +49,7 @@
         <div id="options-list" class="flex flex-col gap-4 mb-12"></div>
         
         <div class="mt-auto pb-8 text-center">
-            <button onclick="app.submitAnswer()" class="brand-bg hover:bg-blue-600 w-full sm:w-auto text-white font-bold py-4 px-12 rounded-xl transition-all shadow-lg shadow-blue-500/30 text-lg">Xác nhận / Câu tiếp theo</button>
+            <button id="submit-btn" class="brand-bg hover:bg-blue-600 w-full sm:w-auto text-white font-bold py-4 px-12 rounded-xl transition-all shadow-lg shadow-blue-500/30 text-lg">Xác nhận / Câu tiếp theo</button>
         </div>
     </div>
 
@@ -72,6 +72,7 @@
 
     <!-- 核心逻辑脚本 -->
     <script>
+        // 全局声明 APP_CONFIG，避免作用域问题
         const APP_CONFIG = {
             timeLimit: 120, // Giới hạn thời gian trả lời 120 giây
             passScore: 80,  // Điểm đạt
@@ -109,11 +110,9 @@
             ]
         };
 
-        // Khởi tạo Supabase (请替换为你的真实密钥)
-        const SUPABASE_URL = 'https://yovquziroemazxptcsei.supabase.co'; 
-        const SUPABASE_KEY = 'sb_publishable_abBYW8JXL0BTjSA2Kf4d-A_uGBad2Gb';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        // 全局声明 supabase，避免重复声明
+        let supabase;
+        // 全局声明 app 对象，确保按钮能访问到
         const app = {
             currentIndex: 0,
             score: 0,
@@ -138,6 +137,11 @@
             },
 
             init: function () {
+                // 初始化 Supabase（仅一次，避免重复声明）
+                const SUPABASE_URL = 'https://yovquziroemazxptcsei.supabase.co'; 
+                const SUPABASE_KEY = 'sb_publishable_abBYW8JXL0BTjSA2Kf4d-A_uGBad2Gb';
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
                 this.loadParticipantCount();
                 // Tự động làm mới tổng số người tham gia mỗi 8 giây (trên trang đăng nhập)
                 this.countRefreshTimer = setInterval(() => {
@@ -145,6 +149,10 @@
                         this.loadParticipantCount();
                     }
                 }, 8000);
+
+                // 绑定按钮事件（替代 onclick 属性，避免作用域问题）
+                document.getElementById("start-btn").addEventListener('click', () => this.startQuiz());
+                document.getElementById("submit-btn").addEventListener('click', () => this.submitAnswer());
             },
 
             // Lấy tổng số người tham gia từ Supabase
@@ -280,7 +288,7 @@
                 }
             },
 
-            // Kết thúc trả lời câu hỏi, thêm bản ghi vào Supabase, tổng số người +1
+            // Kết thúc trả lời câu hỏi，thêm bản ghi vào Supabase，tổng số người +1
             endQuiz: async function () {
                 clearInterval(this.timer);
                 
@@ -316,6 +324,7 @@
             }
         };
 
+        // 页面加载完成后初始化（确保DOM和变量都已就绪）
         window.addEventListener('DOMContentLoaded', () => {
             app.init();
         });
