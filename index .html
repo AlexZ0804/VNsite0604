@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.8, maximum-scale=1.0, user-scalable=no">
+    <title>Hệ thống trả lời câu hỏi thông minh - Chiến dịch Tiết kiệm Năng lượng Nhỏ LCFC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Supabase 官方库 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* 全局字体大小调整 */
+        body {
+            font-size: 14px; 
+        }
+        
+        /* 保持原有背景和基础样式 */
+        body {
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+        }
+        .glass-bg {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .brand-text { color: #10b981; }
+        .brand-bg { background-image: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+        .brand-bg:active { transform: scale(0.98); }
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #059669, #34d399, #059669);
+            background-size: 200% 100%;
+            animation: flowLight 2s linear infinite;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes flowLight {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+        .option-item {
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.4);
+        }
+        .option-item.selected {
+            background-color: rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+            box-shadow: inset 0 0 15px rgba(16, 185, 129, 0.1);
+        }
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 relative">
+    <!-- 背景装饰 -->
+    <div class="absolute top-[-15%] left-[-10%] w-96 h-96 bg-emerald-600/20 rounded-full mix-blend-screen filter blur-[100px] animate-pulse"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-80 h-80 bg-teal-600/20 rounded-full mix-blend-screen filter blur-[80px]"></div>
+    
+    <!-- 主容器 -->
+    <div id="app-container" class="glass-bg w-full max-w-md rounded-3xl relative z-10 flex flex-col h-[85vh] max-h-[750px]">
+        
+        <!-- 登录页 -->
+        <div id="page-login" class="flex-1 flex flex-col justify-center p-8 space-y-8 animate-fade-in">
+            <div class="text-center space-y-3">
+                <div class="mx-auto w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center mb-4 shadow-lg">
+                    <svg class="w-8 h-8 brand-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <h1 class="text-2xl font-bold tracking-widest text-white">ESG <span class="brand-text text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Tiên phong Không Carbon</span></h1>
+                <p class="text-slate-400 text-sm tracking-wide">AI hỗ trợ · Phát hiện lãng phí ẩn tại nhà máy</p>
+            </div>
+            <div class="text-center bg-slate-800/40 py-4 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                <p class="text-slate-400 text-xs tracking-widest mb-1">Thực tế hoàn thành</p>
+                <div class="flex items-center justify-center text-2xl font-mono font-black text-white">
+                    <span id="participant-count" class="mx-2 text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">0</span> Số người
+                </div>
+            </div>
+            <div class="pt-4">
+                <button onclick="app.startQuiz()" class="w-full brand-bg text-white font-bold py-3 rounded-xl shadow-[0_8px_20px_rgba(16,185,129,0.3)] transition-all text-base tracking-wider active:scale-95">
+                    Bắt đầu thử thách
+                </button>
+            </div>
+        </div>
+
+        <!-- 问答页 -->
+        <div id="page-quiz" class="hidden flex-1 flex flex-col p-6 sm:p-8">
+            <div class="flex justify-between items-end mb-6">
+                <div class="w-2/3">
+                    <div class="text-slate-400 text-xs mb-2 font-mono tracking-wider" id="progress-text">PROCESS 1/5</div>
+                    <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="h-full progress-bar-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="text-right w-1/3 text-xl font-mono font-black text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" id="timer-display">02:00</div>
+            </div>
+            <div class="flex-1 overflow-y-auto pr-2 mt-2">
+                <div class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-md mb-3 border border-emerald-500/30" id="question-type">Câu hỏi đơn lựa chọn</div>
+                <h2 id="question-title" class="text-lg font-medium leading-relaxed mb-8 text-slate-100">Đang tải câu hỏi...</h2>
+                <div id="options-list" class="space-y-3 pb-6">
+                    <!-- 选项将由 JS 动态生成 -->
+                </div>
+            </div>
+            <div class="pt-5 mt-auto bg-gradient-to-t from-slate-900/80 to-transparent">
+                <button onclick="app.submitAnswer()" class="w-full bg-white/10 hover:bg-white/15 text-white font-bold py-3 rounded-xl backdrop-blur-sm border border-white/10 transition-all text-base tracking-wider active:scale-95">
+                    Xác nhận gửi
+                </button>
+            </div>
+        </div>
+
+        <!-- 结果页 -->
+        <div id="page-result" class="hidden flex-1 flex flex-col justify-center p-8 text-center space-y-4 relative">
+            <div id="result-icon" class="text-6xl mb-2 drop-shadow-2xl">🏆</div>
+            <div>
+                <h2 id="result-status" class="text-2xl font-bold mb-1">Đang tính toán...</h2>
+                <p class="text-slate-400 text-xs">Hệ thống chấm điểm tổng hợp</p>
+            </div>
+            <div class="text-6xl font-black font-mono brand-text drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]" id="result-score">0</div>
+            
+            <div id="success-certificate" class="hidden w-full max-w-sm mx-auto">
+                <div class="bg-emerald-900/30 border border-emerald-500/40 rounded-2xl p-4 mt-2 backdrop-blur-md">
+                    <p class="text-emerald-400 font-bold mb-3 flex items-center justify-center gap-2 text-sm">
+                        <span>✅</span> Nhận phiếu nhận túi vải giới hạn 
+                    </p>
+                    <div class="bg-white/90 w-32 h-32 mx-auto mb-3 rounded-xl flex items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)] border-4 border-emerald-500/30 relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-10 flex flex-wrap items-center justify-center pointer-events-none">
+                            <span class="text-[8px] text-emerald-900 font-bold m-1">LCFC</span>
+                            <span class="text-[8px] text-emerald-900 font-bold m-1">ESG</span>
+                        </div>
+                        <div class="text-center z-10">
+                            <span class="block text-slate-800 text-xl font-black tracking-widest uppercase">LCFC</span>
+                            <span class="block text-emerald-600 text-xs font-bold mt-1 bg-emerald-100 px-2 py-0.5 rounded">Mã Vượt Qua Màu Xanh</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400">Chụp màn hình và xuất trình cho nhân viên để xác nhận</p>
+                </div>
+            </div>
+            <button onclick="location.reload()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-all mt-auto text-sm">
+                Quay lại trang chủ
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ！！！请在这里填入你的 Supabase 密钥！！！
+        // ==========================================
+        const SUPABASE_URL = 'https://yovquziroemazxptcsei.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_abBYW8JXL0BTjSA2Kf4d-A_uGBad2Gb'; 
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // ==========================================
+
+        const APP_CONFIG = {
+            timeLimit: 120,
+            passScore: 80,
+            questions: [
+                { type: 'single', title: "1. Chữ “E” trong ESG đại diện cho yếu tố Môi trường, “Phát thải carbon thấp” chủ yếu nhằm giảm phát thải loại khí nào？", options: ["Khí CO", "Khí CO₂", "Khí O₂"], correct: [1] },
+                { type: 'single', title: "2. Nội dung nào dưới đây là biện pháp tiết kiệm năng lượng trong nhà máy? ", options: ["Để thiết bị chạy không tải mà không tắt máy.", "Tắt các thiết bị điện không cần thiết.", "Để đèn sáng liên tục không tắt."], correct: [1] },
+                { type: 'single', title: "3. Thực hiện theo ESG: Tắt máy tính, đèn và điều hòa sau giờ làm việc là thói quen tốt giúp tiết kiệm năng lượng và giảm phát thải carbon.", options: ["Đúng", "Sai"], correct: [0] },
+                { type: 'single', title: "4. Khi dây chuyền sản xuất không có người vận hành, việc vẫn để thiết bị chạy không tải là phù hợp với yêu cầu tiết kiệm năng lượng và giảm phát thải carbon.", options: ["Đúng", "Sai"], correct: [1] },
+                { type: 'multi', title: "5. Những hành vi nào dưới đây được xem là hoạt động tiết kiệm năng lượng và giảm phát thải carbon theo ESG của doanh nghiệp？", options: ["Tắt đèn, tắt điều hòa khi ra khỏi phòng.", "Hạn chế để thiết bị vận hành không tải", "Để máy tính ở chế độ chờ trong thời gian dài sau giờ làm việc", "Tắt nguồn các thiết bị khi không sử dụng"], correct: [0, 1, 3] }
+            ]
+        };
+
+        const app = {
+            currentIndex: 0,
+            score: 0,
+            timeLeft: APP_CONFIG.timeLimit,
+            timer: null,
+            selectedOptions: [],
+            totalQuestions: APP_CONFIG.questions.length,
+            el: {
+                pageLogin: document.getElementById('page-login'),
+                pageQuiz: document.getElementById('page-quiz'),
+                pageResult: document.getElementById('page-result'),
+                timerDisplay: document.getElementById('timer-display'),
+                qTitle: document.getElementById('question-title'),
+                qType: document.getElementById('question-type'),
+                oList: document.getElementById('options-list'),
+                progressBar: document.getElementById('progress-bar'),
+                progressText: document.getElementById('progress-text'),
+                participantCount: document.getElementById('participant-count')
+            },
+            
+            init: async function() {
+                this.el.participantCount.innerText = "...";
+                try {
+                    // 读取 vnsite 表里的总人数
+                    const { count, error } = await supabase
+                        .from('vnsite')
+                        .select('*', { count: 'exact', head: true });
+                        
+                    if (error) throw error;
+                    this.el.participantCount.innerText = count || 0;
+                } catch (error) {
+                    console.error('Lỗi khi lấy dữ liệu (Supabase Fetch Error):', error.message);
+                    this.el.participantCount.innerText = 0;
+                }
+            },
+            
+            startQuiz: function() {
+                this.el.pageLogin.classList.add('hidden');
+                this.el.pageQuiz.classList.remove('hidden');
+                this.startTimer();
+                this.renderQuestion();
+            },
+            
+            startTimer: function() {
+                this.updateTimerUI();
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    this.updateTimerUI();
+                    if(this.timeLeft <= 0) {
+                        clearInterval(this.timer);
+                        this.submitAnswer(true);
+                    }
+                }, 1000);
+            },
+            
+            updateTimerUI: function() {
+                let m = Math.floor(this.timeLeft / 60).toString().padStart(2, '0');
+                let s = (this.timeLeft % 60).toString().padStart(2, '0');
+                this.el.timerDisplay.innerText = `${m}:${s}`;
+                if(this.timeLeft <= 10) {
+                    this.el.timerDisplay.classList.add('text-red-500', 'animate-pulse');
+                }
+            },
+            
+            renderQuestion: function() {
+                this.selectedOptions = [];
+                const q = APP_CONFIG.questions[this.currentIndex];
+                this.el.progressText.innerText = `PROCESS ${this.currentIndex + 1} / ${this.totalQuestions}`;
+                this.el.progressBar.style.width = `${((this.currentIndex) / this.totalQuestions) * 100}%`;
+                this.el.qTitle.innerText = q.title;
+                
+                if(q.type === 'single') {
+                    this.el.qType.innerText = "Câu hỏi trắc nghiệm";
+                    this.el.qType.className = "inline-block px-3 py-1 bg-blue-500/20 text-blue-400 text-xs font-bold rounded-md mb-4 border border-blue-500/30";
+                } else {
+                    this.el.qType.innerText = "Câu hỏi nhiều lựa chọn (Chọn tất cả đáp án đúng)";
+                    this.el.qType.className = "inline-block px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-bold rounded-md mb-4 border border-amber-500/30";
+                }
+                
+                let html = '';
+                q.options.forEach((opt, index) => {
+                    const prefix = String.fromCharCode(65 + index);
+                    html += `
+                        <div onclick="app.toggleOption(${index})" id="opt-${index}" class="option-item p-3 rounded-xl cursor-pointer flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-xs" id="opt-icon-${index}">${prefix}</div>
+                            <span class="flex-1 text-slate-200 text-sm">${opt}</span>
+                        </div>
+                    `;
+                });
+                this.el.oList.innerHTML = html;
+            },
+            
+            toggleOption: function(index) {
+                const q = APP_CONFIG.questions[this.currentIndex];
+                if (q.type === 'single') {
+                    this.selectedOptions = [index];
+                    document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+                    document.querySelectorAll('[id^="opt-icon-"]').forEach(el => { el.classList.remove('brand-bg', 'text-white'); });
+                } else {
+                    const idx = this.selectedOptions.indexOf(index);
+                    if (idx > -1) {
+                        this.selectedOptions.splice(idx, 1);
+                    } else {
+                        this.selectedOptions.push(index);
+                    }
+                }
+                
+                const item = document.getElementById(`opt-${index}`);
+                const icon = document.getElementById(`opt-icon-${index}`);
+                if(this.selectedOptions.includes(index)){
+                    item.classList.add('selected');
+                    icon.classList.add('brand-bg', 'text-white');
+                } else {
+                    item.classList.remove('selected');
+                    icon.classList.remove('brand-bg', 'text-white');
+                }
+            },
+            
+            submitAnswer: function(forceEnd = false) {
+                if(!forceEnd && this.selectedOptions.length === 0) {
+                    alert('Vui lòng chọn ít nhất một đáp án!');
+                    return;
+                }
+                
+                if(!forceEnd) {
+                    const currentQ = APP_CONFIG.questions[this.currentIndex];
+                    const userAns = this.selectedOptions.sort().toString();
+                    const correctAns = currentQ.correct.sort().toString();
+                    if(userAns === correctAns) {
+                        this.score += (100 / this.totalQuestions);
+                    }
+                    this.currentIndex++;
+                }
+                
+                if(forceEnd || this.currentIndex >= this.totalQuestions) {
+                    this.el.progressBar.style.width = '100%';
+                    setTimeout(() => this.endQuiz(), 300);
+                } else {
+                    this.renderQuestion();
+                }
+            },
+            
+            endQuiz: async function() {
+                clearInterval(this.timer);
+                this.el.pageQuiz.classList.remove('flex');
+                this.el.pageQuiz.classList.add('hidden');
+                this.el.pageResult.classList.remove('hidden');
+                this.el.pageResult.classList.add('flex');
+                
+                const finalScore = Math.round(this.score);
+                document.getElementById('result-score').innerText = finalScore;
+                
+                const statusEl = document.getElementById('result-status');
+                const iconEl = document.getElementById('result-icon');
+                const isPassed = finalScore >= APP_CONFIG.passScore;
+                
+                if(isPassed) {
+                    statusEl.innerText = "Hoàn thành thử thách!";
+                    statusEl.className = "text-2xl font-bold mb-2 text-emerald-400 drop-shadow-md";
+                    iconEl.innerText = "🏆";
+                    document.getElementById('success-certificate').classList.remove('hidden');
+                } else {
+                    statusEl.innerText = "Thất bại thử thách";
+                    statusEl.className = "text-2xl font-bold mb-2 text-red-400 drop-shadow-md";
+                    iconEl.innerText = "🔋";
+                    document.getElementById('result-score').classList.remove('brand-text');
+                    document.getElementById('result-score').classList.add('text-slate-500');
+                }
+                
+                // 将成绩写入 vnsite 表
+                try {
+                    const { error } = await supabase
+                        .from('vnsite')
+                        .insert([{ score: finalScore }]);
+                        
+                    if (error) {
+                        console.error("提交成绩失败(Lỗi khi lưu kết quả):", error.message);
+                    } else {
+                        console.log("提交成功！");
+                    }
+                } catch (error) {
+                    console.error("系统错误(System Error):", error);
+                }
+            }
+        };
+
+        window.onload = function() {
+            app.init();
+        };
+    </script>
+</body>
+</html>
