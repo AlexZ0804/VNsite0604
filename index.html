@@ -148,7 +148,8 @@
         // ==========================================
         const SUPABASE_URL = 'https://yovquziroemazxptcsei.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_abBYW8JXL0BTjSA2Kf4d-A_uGBad2Gb'; 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // 已经修改了变量名为 supabaseClient 解决冲突错误
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         // ==========================================
 
         const APP_CONFIG = {
@@ -186,8 +187,8 @@
             init: async function() {
                 this.el.participantCount.innerText = "...";
                 try {
-                    // 读取 vnsite 表里的总人数
-                    const { count, error } = await supabase
+                    // 读取 vnsite 表里的总人数（已使用 supabaseClient）
+                    const { count, error } = await supabaseClient
                         .from('vnsite')
                         .select('*', { count: 'exact', head: true });
                         
@@ -332,9 +333,9 @@
                     document.getElementById('result-score').classList.add('text-slate-500');
                 }
                 
-                // 将成绩写入 vnsite 表
+                // 将成绩写入 vnsite 表（已使用 supabaseClient）
                 try {
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from('vnsite')
                         .insert([{ score: finalScore }]);
                         
