@@ -2,117 +2,167 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trả lời câu hỏi Kiến thức Tiết kiệm Năng lượng Giảm Carbon ESG</title>
-    <!-- 引入 TailwindCSS 样式 -->
+    <meta name="viewport" content="width=device-width, initial-scale=0.8, maximum-scale=1.0, user-scalable=no">
+    <title>Hệ thống trả lời câu hỏi thông minh - Chiến dịch Tiết kiệm Năng lượng Nhỏ LCFC</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: #0f172a; 
-            color: white; 
-        }
-        .brand-bg { background-color: #3b82f6; }
-        .option-item { border: 2px solid #1e293b; background-color: #1e293b; transition: all 0.2s ease; }
-        .option-item.selected { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); }
-    </style>
-    <!-- 引入 Supabase JS 库 -->
+    <!-- 引入 Supabase 官方库 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* 全局字体大小调整 */
+        body {
+            font-size: 14px; 
+        }
+        
+        /* 保持原有背景和基础样式 */
+        body {
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+        }
+        .glass-bg {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .brand-text { color: #10b981; }
+        .brand-bg { background-image: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+        .brand-bg:active { transform: scale(0.98); }
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #059669, #34d399, #059669);
+            background-size: 200% 100%;
+            animation: flowLight 2s linear infinite;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes flowLight {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+        .option-item {
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.4);
+        }
+        .option-item.selected {
+            background-color: rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+            box-shadow: inset 0 0 15px rgba(16, 185, 129, 0.1);
+        }
+        ::-webkit-scrollbar { display: none; }
+    </style>
 </head>
-<body>
-    <!-- 首页 / 登录页 -->
-    <div id="page-login" class="min-h-screen flex flex-col items-center justify-center p-4">
-        <h1 class="text-3xl sm:text-4xl font-bold mb-6 text-center">Trả lời câu hỏi Kiến thức Tiết kiệm Năng lượng Giảm Carbon ESG</h1>
-        <div class="bg-slate-800 px-8 py-6 rounded-2xl shadow-xl text-center mb-8 border border-slate-700">
-            <p class="text-slate-300 mb-2">Tổng số người tham gia thử thách hiện tại</p>
-            <div class="text-4xl font-black text-blue-500 font-mono tracking-wider">
-                <span id="participant-count">0</span> <span class="text-xl text-slate-400 font-normal">người</span>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 relative">
+    <!-- 背景装饰 -->
+    <div class="absolute top-[-15%] left-[-10%] w-96 h-96 bg-emerald-600/20 rounded-full mix-blend-screen filter blur-[100px] animate-pulse"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-80 h-80 bg-teal-600/20 rounded-full mix-blend-screen filter blur-[80px]"></div>
+    
+    <!-- 主容器 -->
+    <div id="app-container" class="glass-bg w-full max-w-md rounded-3xl relative z-10 flex flex-col h-[85vh] max-h-[750px]">
+        
+        <!-- 登录页 -->
+        <div id="page-login" class="flex-1 flex flex-col justify-center p-8 space-y-8 animate-fade-in">
+            <div class="text-center space-y-3">
+                <div class="mx-auto w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center mb-4 shadow-lg">
+                    <svg class="w-8 h-8 brand-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <h1 class="text-2xl font-bold tracking-widest text-white">ESG <span class="brand-text text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Tiên phong Không Carbon</span></h1>
+                <p class="text-slate-400 text-sm tracking-wide">AI hỗ trợ · Phát hiện lãng phí ẩn tại nhà máy</p>
+            </div>
+            <div class="text-center bg-slate-800/40 py-4 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                <p class="text-slate-400 text-xs tracking-widest mb-1">Thực tế hoàn thành</p>
+                <div class="flex items-center justify-center text-2xl font-mono font-black text-white">
+                    <span id="participant-count" class="mx-2 text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">0</span> Số người
+                </div>
+            </div>
+            <div class="pt-4">
+                <button onclick="app.startQuiz()" class="w-full brand-bg text-white font-bold py-3 rounded-xl shadow-[0_8px_20px_rgba(16,185,129,0.3)] transition-all text-base tracking-wider active:scale-95">
+                    Bắt đầu thử thách
+                </button>
             </div>
         </div>
-        <button id="start-btn" class="brand-bg hover:bg-blue-600 text-white font-bold py-4 px-12 rounded-full transition-all text-lg shadow-lg shadow-blue-500/30">Bắt đầu thử thách</button>
+
+        <!-- 问答页 -->
+        <div id="page-quiz" class="hidden flex-1 flex flex-col p-6 sm:p-8">
+            <div class="flex justify-between items-end mb-6">
+                <div class="w-2/3">
+                    <div class="text-slate-400 text-xs mb-2 font-mono tracking-wider" id="progress-text">PROCESS 1/5</div>
+                    <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="h-full progress-bar-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="text-right w-1/3 text-xl font-mono font-black text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" id="timer-display">02:00</div>
+            </div>
+            <div class="flex-1 overflow-y-auto pr-2 mt-2">
+                <div class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-md mb-3 border border-emerald-500/30" id="question-type">Câu hỏi đơn lựa chọn</div>
+                <h2 id="question-title" class="text-lg font-medium leading-relaxed mb-8 text-slate-100">Đang tải câu hỏi...</h2>
+                <div id="options-list" class="space-y-3 pb-6">
+                    <!-- 选项将由 JS 动态生成 -->
+                </div>
+            </div>
+            <div class="pt-5 mt-auto bg-gradient-to-t from-slate-900/80 to-transparent">
+                <button onclick="app.submitAnswer()" class="w-full bg-white/10 hover:bg-white/15 text-white font-bold py-3 rounded-xl backdrop-blur-sm border border-white/10 transition-all text-base tracking-wider active:scale-95">
+                    Xác nhận gửi
+                </button>
+            </div>
+        </div>
+
+        <!-- 结果页 -->
+        <div id="page-result" class="hidden flex-1 flex flex-col justify-center p-8 text-center space-y-4 relative">
+            <div id="result-icon" class="text-6xl mb-2 drop-shadow-2xl">🏆</div>
+            <div>
+                <h2 id="result-status" class="text-2xl font-bold mb-1">Đang tính toán...</h2>
+                <p class="text-slate-400 text-xs">Hệ thống chấm điểm tổng hợp</p>
+            </div>
+            <div class="text-6xl font-black font-mono brand-text drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]" id="result-score">0</div>
+            
+            <div id="success-certificate" class="hidden w-full max-w-sm mx-auto">
+                <div class="bg-emerald-900/30 border border-emerald-500/40 rounded-2xl p-4 mt-2 backdrop-blur-md">
+                    <p class="text-emerald-400 font-bold mb-3 flex items-center justify-center gap-2 text-sm">
+                        <span>✅</span> Nhận phiếu nhận túi vải giới hạn 
+                    </p>
+                    <div class="bg-white/90 w-32 h-32 mx-auto mb-3 rounded-xl flex items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)] border-4 border-emerald-500/30 relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-10 flex flex-wrap items-center justify-center pointer-events-none">
+                            <span class="text-[8px] text-emerald-900 font-bold m-1">LCFC</span>
+                            <span class="text-[8px] text-emerald-900 font-bold m-1">ESG</span>
+                        </div>
+                        <div class="text-center z-10">
+                            <span class="block text-slate-800 text-xl font-black tracking-widest uppercase">LCFC</span>
+                            <span class="block text-emerald-600 text-xs font-bold mt-1 bg-emerald-100 px-2 py-0.5 rounded">Mã Vượt Qua Màu Xanh</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400">Chụp màn hình và xuất trình cho nhân viên để xác nhận</p>
+                </div>
+            </div>
+            <button onclick="location.reload()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-all mt-auto text-sm">
+                Quay lại trang chủ
+            </button>
+        </div>
     </div>
 
-    <!-- 答题页 -->
-    <div id="page-quiz" class="min-h-screen hidden flex-col max-w-2xl mx-auto p-4 relative">
-        <div class="flex justify-between items-center mb-6 pt-4">
-            <div class="text-sm font-semibold text-slate-400" id="progress-text">TIẾN TRÌNH 1 / 5</div>
-            <div class="text-xl font-mono font-bold" id="timer-display">02:00</div>
-        </div>
-        
-        <div class="w-full bg-slate-800 h-2 rounded-full mb-8 overflow-hidden">
-            <div id="progress-bar" class="brand-bg h-full transition-all duration-300" style="width: 0%;"></div>
-        </div>
-
-        <div id="question-type" class="inline-block px-3 py-1 bg-blue-500/20 text-blue-400 text-xs font-bold rounded-md mb-4 border border-blue-500/30 w-max">Câu hỏi đơn lựa chọn</div>
-        <h2 id="question-title" class="text-xl sm:text-2xl font-bold mb-8 leading-relaxed">Đang tải câu hỏi...</h2>
-        
-        <div id="options-list" class="flex flex-col gap-4 mb-12"></div>
-        
-        <div class="mt-auto pb-8 text-center">
-            <button id="submit-btn" class="brand-bg hover:bg-blue-600 w-full sm:w-auto text-white font-bold py-4 px-12 rounded-xl transition-all shadow-lg shadow-blue-500/30 text-lg">Xác nhận / Câu tiếp theo</button>
-        </div>
-    </div>
-
-    <!-- 结果页 -->
-    <div id="page-result" class="min-h-screen hidden flex-col items-center justify-center p-4 text-center">
-        <h2 class="text-3xl font-bold mb-2">Kết thúc trả lời câu hỏi</h2>
-        <p id="result-status" class="text-xl mb-6 font-semibold text-blue-400">Đang tính điểm...</p>
-        
-        <div class="text-6xl font-bold mb-8 text-white">
-            <span id="result-score">0</span><span class="text-2xl text-slate-400">điểm</span>
-        </div>
-        
-        <div id="success-certificate" class="hidden bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-12 max-w-md w-full">
-            <h3 class="text-amber-400 font-bold text-lg mb-2 flex items-center justify-center gap-2">🏆 Thử thách thành công!</h3>
-            <p class="text-slate-400 text-sm">Cảm ơn bạn đã đóng góp cho việc thực hiện ESG Tiết kiệm Năng lượng Giảm Carbon</p>
-        </div>
-        
-        <button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 px-12 rounded-full transition-all">Quay lại trang chủ làm mới</button>
-    </div>
-
-    <!-- 核心逻辑脚本 -->
     <script>
-        // 全局声明 APP_CONFIG，避免作用域问题
+        // ==========================================
+        // ！！！请在这里填入你的 Supabase 密钥！！！
+        // ==========================================
+        const SUPABASE_URL = 'https://yovquziroemazxptcsei.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_abBYW8JXL0BTjSA2Kf4d-A_uGBad2Gb'; 
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // ==========================================
+
         const APP_CONFIG = {
-            timeLimit: 120, // Giới hạn thời gian trả lời 120 giây
-            passScore: 80,  // Điểm đạt
+            timeLimit: 120,
+            passScore: 80,
             questions: [
-                {
-                    type: "single",
-                    title: "1. Chữ \"E\" trong ESG đại diện cho Môi trường, \"Carbon thấp\" chủ yếu là giảm phát thải loại khí nào?",
-                    options: ["Khí carbon oxit", "Khí carbon dioxide", "Khí oxy"],
-                    correct: [1]
-                },
-                {
-                    type: "single",
-                    title: "2. Điểm nào sau đây thuộc biện pháp tiết kiệm năng lượng hàng ngày của nhà máy?",
-                    options: ["Thiết bị chạy không tải không tắt máy", "Bật/tắt theo nhu cầu, giảm vận hành không tải", "Để đèn sáng liên tục không tắt"],
-                    correct: [1]
-                },
-                {
-                    type: "single",
-                    title: "3. Thực hiện ESG, tắt máy tính, đèn và điều hòa khi tan làm việc là thói quen tốt tiết kiệm năng lượng giảm carbon.",
-                    options: ["Đúng", "Sai"],
-                    correct: [0]
-                },
-                {
-                    type: "single",
-                    title: "4. Khi dây chuyền sản xuất không có người làm việc, giữ thiết bị chạy không tải phù hợp với yêu cầu tiết kiệm năng lượng giảm carbon.",
-                    options: ["Đúng", "Sai"],
-                    correct: [1]
-                },
-                {
-                    type: "multi",
-                    title: "5. Những hành vi nào thuộc về ESG Tiết kiệm Năng lượng Giảm Carbon của doanh nghiệp?",
-                    options: ["Tắt đèn, tắt điều hòa khi ra khỏi phòng", "Giảm thiết bị vận hành không tải", "Máy tính ở chế độ chờ lâu sau tan làm việc", "Tắt nguồn thiết bị không sử dụng kịp thời"],
-                    correct: [0, 1, 3]
-                }
+                { type: 'single', title: "1. Chữ “E” trong ESG đại diện cho yếu tố Môi trường, “Phát thải carbon thấp” chủ yếu nhằm giảm phát thải loại khí nào？", options: ["Khí CO", "Khí CO₂", "Khí O₂"], correct: [1] },
+                { type: 'single', title: "2. Nội dung nào dưới đây là biện pháp tiết kiệm năng lượng trong nhà máy? ", options: ["Để thiết bị chạy không tải mà không tắt máy.", "Tắt các thiết bị điện không cần thiết.", "Để đèn sáng liên tục không tắt."], correct: [1] },
+                { type: 'single', title: "3. Thực hiện theo ESG: Tắt máy tính, đèn và điều hòa sau giờ làm việc là thói quen tốt giúp tiết kiệm năng lượng và giảm phát thải carbon.", options: ["Đúng", "Sai"], correct: [0] },
+                { type: 'single', title: "4. Khi dây chuyền sản xuất không có người vận hành, việc vẫn để thiết bị chạy không tải là phù hợp với yêu cầu tiết kiệm năng lượng và giảm phát thải carbon.", options: ["Đúng", "Sai"], correct: [1] },
+                { type: 'multi', title: "5. Những hành vi nào dưới đây được xem là hoạt động tiết kiệm năng lượng và giảm phát thải carbon theo ESG của doanh nghiệp？", options: ["Tắt đèn, tắt điều hòa khi ra khỏi phòng.", "Hạn chế để thiết bị vận hành không tải", "Để máy tính ở chế độ chờ trong thời gian dài sau giờ làm việc", "Tắt nguồn các thiết bị khi không sử dụng"], correct: [0, 1, 3] }
             ]
         };
 
-        // 全局声明 supabase，避免重复声明
-        let supabase;
-        // 全局声明 app 对象，确保按钮能访问到
         const app = {
             currentIndex: 0,
             score: 0,
@@ -120,126 +170,97 @@
             timer: null,
             selectedOptions: [],
             totalQuestions: APP_CONFIG.questions.length,
-            hasSubmittedCount: false,
-            countRefreshTimer: null,
-
             el: {
-                pageLogin: document.getElementById("page-login"),
-                pageQuiz: document.getElementById("page-quiz"),
-                pageResult: document.getElementById("page-result"),
-                timerDisplay: document.getElementById("timer-display"),
-                qTitle: document.getElementById("question-title"),
-                qType: document.getElementById("question-type"),
-                oList: document.getElementById("options-list"),
-                progressBar: document.getElementById("progress-bar"),
-                progressText: document.getElementById("progress-text"),
-                participantCount: document.getElementById("participant-count")
+                pageLogin: document.getElementById('page-login'),
+                pageQuiz: document.getElementById('page-quiz'),
+                pageResult: document.getElementById('page-result'),
+                timerDisplay: document.getElementById('timer-display'),
+                qTitle: document.getElementById('question-title'),
+                qType: document.getElementById('question-type'),
+                oList: document.getElementById('options-list'),
+                progressBar: document.getElementById('progress-bar'),
+                progressText: document.getElementById('progress-text'),
+                participantCount: document.getElementById('participant-count')
             },
-
-            init: function () {
-                // 初始化 Supabase（仅一次，避免重复声明）
-                const SUPABASE_URL = 'https://yovquziroemazxptcsei.supabase.co'; 
-                const SUPABASE_KEY = 'sb_publishable_abBYW8JXL0BTjSA2Kf4d-A_uGBad2Gb';
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-                this.loadParticipantCount();
-                // Tự động làm mới tổng số người tham gia mỗi 8 giây (trên trang đăng nhập)
-                this.countRefreshTimer = setInterval(() => {
-                    if (!this.el.pageLogin.classList.contains("hidden")) {
-                        this.loadParticipantCount();
-                    }
-                }, 8000);
-
-                // 绑定按钮事件（替代 onclick 属性，避免作用域问题）
-                document.getElementById("start-btn").addEventListener('click', () => this.startQuiz());
-                document.getElementById("submit-btn").addEventListener('click', () => this.submitAnswer());
-            },
-
-            // Lấy tổng số người tham gia từ Supabase
-            loadParticipantCount: async function () {
+            
+            init: async function() {
+                this.el.participantCount.innerText = "...";
                 try {
+                    // 读取 vnsite 表里的总人数
                     const { count, error } = await supabase
-                        .from('participants')
+                        .from('vnsite')
                         .select('*', { count: 'exact', head: true });
-
+                        
                     if (error) throw error;
                     this.el.participantCount.innerText = count || 0;
                 } catch (error) {
-                    console.error("Lỗi khi lấy tổng số người tham gia:", error);
+                    console.error('Lỗi khi lấy dữ liệu (Supabase Fetch Error):', error.message);
+                    this.el.participantCount.innerText = 0;
                 }
             },
-
-            startQuiz: function () {
-                this.el.pageLogin.classList.add("hidden");
-                this.el.pageQuiz.classList.remove("hidden");
-                this.el.pageQuiz.classList.add("flex");
+            
+            startQuiz: function() {
+                this.el.pageLogin.classList.add('hidden');
+                this.el.pageQuiz.classList.remove('hidden');
                 this.startTimer();
                 this.renderQuestion();
             },
-
-            startTimer: function () {
+            
+            startTimer: function() {
                 this.updateTimerUI();
                 this.timer = setInterval(() => {
                     this.timeLeft--;
                     this.updateTimerUI();
-
-                    if (this.timeLeft <= 0) {
+                    if(this.timeLeft <= 0) {
                         clearInterval(this.timer);
                         this.submitAnswer(true);
                     }
                 }, 1000);
             },
-
-            updateTimerUI: function () {
-                let m = Math.floor(this.timeLeft / 60).toString().padStart(2, "0");
-                let s = (this.timeLeft % 60).toString().padStart(2, "0");
+            
+            updateTimerUI: function() {
+                let m = Math.floor(this.timeLeft / 60).toString().padStart(2, '0');
+                let s = (this.timeLeft % 60).toString().padStart(2, '0');
                 this.el.timerDisplay.innerText = `${m}:${s}`;
-
-                if (this.timeLeft <= 10) {
-                    this.el.timerDisplay.classList.add("text-red-500", "animate-pulse");
+                if(this.timeLeft <= 10) {
+                    this.el.timerDisplay.classList.add('text-red-500', 'animate-pulse');
                 }
             },
-
-            renderQuestion: function () {
+            
+            renderQuestion: function() {
                 this.selectedOptions = [];
                 const q = APP_CONFIG.questions[this.currentIndex];
-
-                this.el.progressText.innerText = `TIẾN TRÌNH ${this.currentIndex + 1} / ${this.totalQuestions}`;
-                this.el.progressBar.style.width = `${(this.currentIndex / this.totalQuestions) * 100}%`;
+                this.el.progressText.innerText = `PROCESS ${this.currentIndex + 1} / ${this.totalQuestions}`;
+                this.el.progressBar.style.width = `${((this.currentIndex) / this.totalQuestions) * 100}%`;
                 this.el.qTitle.innerText = q.title;
-
-                if (q.type === "single") {
-                    this.el.qType.innerText = "Câu hỏi đơn lựa chọn";
+                
+                if(q.type === 'single') {
+                    this.el.qType.innerText = "Câu hỏi trắc nghiệm";
                     this.el.qType.className = "inline-block px-3 py-1 bg-blue-500/20 text-blue-400 text-xs font-bold rounded-md mb-4 border border-blue-500/30";
                 } else {
-                    this.el.qType.innerText = "Câu hỏi nhiều lựa chọn (Vui lòng chọn tất cả đáp án đúng)";
+                    this.el.qType.innerText = "Câu hỏi nhiều lựa chọn (Chọn tất cả đáp án đúng)";
                     this.el.qType.className = "inline-block px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-bold rounded-md mb-4 border border-amber-500/30";
                 }
-
-                let html = "";
+                
+                let html = '';
                 q.options.forEach((opt, index) => {
                     const prefix = String.fromCharCode(65 + index);
                     html += `
-                        <div onclick="app.toggleOption(${index})" id="opt-${index}" class="option-item p-4 rounded-xl cursor-pointer flex items-center gap-4">
-                            <div id="opt-icon-${index}" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-sm shadow-inner transition-colors">${prefix}</div>
-                            <span class="flex-1 text-slate-200">${opt}</span>
+                        <div onclick="app.toggleOption(${index})" id="opt-${index}" class="option-item p-3 rounded-xl cursor-pointer flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-xs" id="opt-icon-${index}">${prefix}</div>
+                            <span class="flex-1 text-slate-200 text-sm">${opt}</span>
                         </div>
                     `;
                 });
-
                 this.el.oList.innerHTML = html;
             },
-
-            toggleOption: function (index) {
+            
+            toggleOption: function(index) {
                 const q = APP_CONFIG.questions[this.currentIndex];
-
-                if (q.type === "single") {
+                if (q.type === 'single') {
                     this.selectedOptions = [index];
-                    document.querySelectorAll(".option-item").forEach(el => el.classList.remove("selected"));
-                    document.querySelectorAll("[id^='opt-icon-']").forEach(el => {
-                        el.classList.remove("brand-bg", "text-white");
-                        el.classList.add("text-slate-400");
-                    });
+                    document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+                    document.querySelectorAll('[id^="opt-icon-"]').forEach(el => { el.classList.remove('brand-bg', 'text-white'); });
                 } else {
                     const idx = this.selectedOptions.indexOf(index);
                     if (idx > -1) {
@@ -248,86 +269,89 @@
                         this.selectedOptions.push(index);
                     }
                 }
-
+                
                 const item = document.getElementById(`opt-${index}`);
                 const icon = document.getElementById(`opt-icon-${index}`);
-
-                if (this.selectedOptions.includes(index)) {
-                    item.classList.add("selected");
-                    icon.classList.add("brand-bg", "text-white");
-                    icon.classList.remove("text-slate-400");
+                if(this.selectedOptions.includes(index)){
+                    item.classList.add('selected');
+                    icon.classList.add('brand-bg', 'text-white');
                 } else {
-                    item.classList.remove("selected");
-                    icon.classList.remove("brand-bg", "text-white");
-                    icon.classList.add("text-slate-400");
+                    item.classList.remove('selected');
+                    icon.classList.remove('brand-bg', 'text-white');
                 }
             },
-
-            submitAnswer: function (forceEnd = false) {
-                if (!forceEnd && this.selectedOptions.length === 0) {
-                    alert("Vui lòng chọn ít nhất một đáp án!");
+            
+            submitAnswer: function(forceEnd = false) {
+                if(!forceEnd && this.selectedOptions.length === 0) {
+                    alert('Vui lòng chọn ít nhất một đáp án!');
                     return;
                 }
-
-                if (!forceEnd) {
+                
+                if(!forceEnd) {
                     const currentQ = APP_CONFIG.questions[this.currentIndex];
-                    const userAns = [...this.selectedOptions].sort().toString();
-                    const correctAns = [...currentQ.correct].sort().toString();
-
-                    if (userAns === correctAns) {
+                    const userAns = this.selectedOptions.sort().toString();
+                    const correctAns = currentQ.correct.sort().toString();
+                    if(userAns === correctAns) {
                         this.score += (100 / this.totalQuestions);
                     }
                     this.currentIndex++;
                 }
-
-                if (forceEnd || this.currentIndex >= this.totalQuestions) {
-                    this.el.progressBar.style.width = "100%";
+                
+                if(forceEnd || this.currentIndex >= this.totalQuestions) {
+                    this.el.progressBar.style.width = '100%';
                     setTimeout(() => this.endQuiz(), 300);
                 } else {
                     this.renderQuestion();
                 }
             },
-
-            // Kết thúc trả lời câu hỏi，thêm bản ghi vào Supabase，tổng số người +1
-            endQuiz: async function () {
+            
+            endQuiz: async function() {
                 clearInterval(this.timer);
+                this.el.pageQuiz.classList.remove('flex');
+                this.el.pageQuiz.classList.add('hidden');
+                this.el.pageResult.classList.remove('hidden');
+                this.el.pageResult.classList.add('flex');
                 
-                this.el.pageQuiz.classList.remove("flex");
-                this.el.pageQuiz.classList.add("hidden");
-                this.el.pageResult.classList.remove("hidden");
-                this.el.pageResult.classList.add("flex");
-
                 const finalScore = Math.round(this.score);
-                document.getElementById("result-score").innerText = finalScore;
-
-                if (finalScore >= APP_CONFIG.passScore) {
-                    document.getElementById("result-status").innerText = "Thử thách thành công";
-                    document.getElementById("success-certificate").classList.remove("hidden");
+                document.getElementById('result-score').innerText = finalScore;
+                
+                const statusEl = document.getElementById('result-status');
+                const iconEl = document.getElementById('result-icon');
+                const isPassed = finalScore >= APP_CONFIG.passScore;
+                
+                if(isPassed) {
+                    statusEl.innerText = "Hoàn thành thử thách!";
+                    statusEl.className = "text-2xl font-bold mb-2 text-emerald-400 drop-shadow-md";
+                    iconEl.innerText = "🏆";
+                    document.getElementById('success-certificate').classList.remove('hidden');
                 } else {
-                    document.getElementById("result-status").innerText = "Thử thách thất bại, cần cố gắng hơn!";
+                    statusEl.innerText = "Thất bại thử thách";
+                    statusEl.className = "text-2xl font-bold mb-2 text-red-400 drop-shadow-md";
+                    iconEl.innerText = "🔋";
+                    document.getElementById('result-score').classList.remove('brand-text');
+                    document.getElementById('result-score').classList.add('text-slate-500');
                 }
-
-                // Ngăn ngừa gửi lại tổng số người tham gia
-                if (!this.hasSubmittedCount) {
-                    this.hasSubmittedCount = true;
-                    try {
-                        const { error } = await supabase
-                            .from('participants')
-                            .insert([ { score: finalScore } ]);
+                
+                // 将成绩写入 vnsite 表
+                try {
+                    const { error } = await supabase
+                        .from('vnsite')
+                        .insert([{ score: finalScore }]);
                         
-                        if (error) throw error;
-                        console.log("Điểm đã được tải lên Supabase, tổng số người tham gia +1");
-                    } catch (error) {
-                        console.error("Lỗi khi gửi điểm:", error);
+                    if (error) {
+                        console.error("提交成绩失败(Lỗi khi lưu kết quả):", error.message);
+                    } else {
+                        console.log("提交成功！");
                     }
+                } catch (error) {
+                    console.error("系统错误(System Error):", error);
                 }
             }
         };
 
-        // 页面加载完成后初始化（确保DOM和变量都已就绪）
-        window.addEventListener('DOMContentLoaded', () => {
+        window.onload = function() {
             app.init();
-        });
+        };
     </script>
 </body>
 </html>
